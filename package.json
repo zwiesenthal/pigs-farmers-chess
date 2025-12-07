@@ -1,0 +1,26 @@
+{
+  "name": "pigs-and-farmers",
+  "version": "1.0.0",
+  "description": "A chess variant game: Queen vs 8 Pawns with a high-performance WASM engine",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:wasm && vite build",
+    "build:wasm": "make wasm",
+    "build:wasm:debug": "make debug",
+    "preview": "vite preview",
+    "clean": "make clean && rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "chess",
+    "variant",
+    "webassembly",
+    "wasm",
+    "game"
+  ],
+  "license": "MIT"
+}

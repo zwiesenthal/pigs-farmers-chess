@@ -1,0 +1,613 @@
+/* Pigs and Farmers - Lichess-style UI */
+
+:root {
+  --bg-dark: #161512;
+  --bg-medium: #262421;
+  --bg-light: #302e2c;
+  --bg-lighter: #3a3836;
+  --text-primary: #bababa;
+  --text-secondary: #8b8987;
+  --text-bright: #ffffff;
+  --accent-green: #629924;
+  --accent-green-light: #8bc34a;
+  --accent-blue: #3692e7;
+  --accent-red: #cc6666;
+  --eval-white: #ffffff;
+  --eval-black: #262421;
+  --square-light: #f0d9b5;
+  --square-dark: #b58863;
+  --square-selected: rgba(20, 85, 30, 0.5);
+  --square-last-move: rgba(155, 199, 0, 0.41);
+  --square-legal: rgba(20, 85, 30, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans', 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--bg-light);
+  border-top-color: var(--accent-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#app {
+  display: none;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* Main container */
+.game-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  max-width: 1400px;
+}
+
+/* Evaluation Bar */
+.eval-bar {
+  width: 30px;
+  height: 480px;
+  background-color: var(--eval-black);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.eval-white {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background-color: var(--eval-white);
+  transition: height 0.3s ease;
+}
+
+.eval-score-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--bg-dark);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* Board Container */
+.board-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Chess Board */
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 480px;
+  height: 480px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.square.light {
+  background-color: var(--square-light);
+}
+
+.square.dark {
+  background-color: var(--square-dark);
+}
+
+.square.selected {
+  background-color: var(--square-selected) !important;
+}
+
+.square.last-move {
+  background-color: var(--square-last-move) !important;
+}
+
+.square.legal-target .legal-dot {
+  width: 33%;
+  height: 33%;
+  background-color: rgba(20, 85, 30, 0.5);
+  border-radius: 50%;
+}
+
+.square.legal-target .legal-dot.capture {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: 8px solid rgba(20, 85, 30, 0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* Coordinates */
+.coord {
+  position: absolute;
+  font-size: 10px;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.file-label {
+  bottom: 2px;
+  right: 3px;
+}
+
+.rank-label {
+  top: 2px;
+  left: 3px;
+}
+
+.square.light .coord {
+  color: var(--square-dark);
+}
+
+.square.dark .coord {
+  color: var(--square-light);
+}
+
+/* Pieces */
+.piece {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  z-index: 5;
+}
+
+.piece:active {
+  cursor: grabbing;
+}
+
+.piece.dragging {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  cursor: grabbing;
+}
+
+.piece-svg {
+  width: 85%;
+  height: 85%;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+/* Arrow Layer */
+.arrow-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.controls button {
+  padding: 8px 16px;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.controls button:hover {
+  background-color: var(--bg-lighter);
+  color: var(--text-bright);
+}
+
+.controls button.active {
+  background-color: var(--accent-green);
+  color: white;
+}
+
+.controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Side Panel */
+.side-panel {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Panel sections */
+.panel-section {
+  background-color: var(--bg-medium);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.panel-header {
+  background-color: var(--bg-light);
+  padding: 10px 15px;
+  font-weight: bold;
+  font-size: 13px;
+  color: var(--text-bright);
+  border-bottom: 1px solid var(--bg-lighter);
+}
+
+/* Analysis Panel */
+#analysis-panel {
+  padding: 10px 15px;
+  min-height: 120px;
+  position: relative;
+}
+
+.analyzing-state {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 0;
+}
+
+.analysis-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--bg-lighter);
+  border-top-color: var(--accent-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.analysis-status {
+  flex: 1;
+}
+
+.analysis-status p {
+  margin: 5px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.analysis-depth {
+  font-weight: bold;
+  color: var(--text-bright) !important;
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bg-light);
+  flex-wrap: wrap;
+}
+
+#analysis-panel .analysis-spinner {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  margin-right: -5px;
+}
+
+.eval-score {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-bright);
+  min-width: 70px;
+}
+
+.depth-info,
+.nps-info {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pv-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pv-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px;
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+.pv-line.best {
+  background-color: var(--bg-light);
+}
+
+.pv-score {
+  min-width: 50px;
+  font-weight: bold;
+  color: var(--text-bright);
+}
+
+.pv-moves {
+  color: var(--text-secondary);
+  font-family: monospace;
+  word-break: break-all;
+}
+
+/* Move List */
+#move-list {
+  padding: 10px 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.move-row {
+  display: flex;
+  gap: 5px;
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.move-number {
+  color: var(--text-secondary);
+  min-width: 25px;
+  text-align: right;
+}
+
+.move {
+  padding: 2px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: monospace;
+  min-width: 45px;
+  text-align: center;
+}
+
+.move:hover {
+  background-color: var(--bg-light);
+}
+
+.move.current {
+  background-color: var(--accent-green);
+  color: white;
+}
+
+/* Status */
+#status {
+  padding: 10px 15px;
+  font-size: 14px;
+  color: var(--text-bright);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+/* Settings */
+.settings {
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.setting-row label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.setting-row input {
+  width: 70px;
+  padding: 5px 10px;
+  background-color: var(--bg-dark);
+  border: 1px solid var(--bg-lighter);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.setting-row input:focus {
+  outline: none;
+  border-color: var(--accent-green);
+}
+
+.settings-note {
+  margin-top: 5px;
+  padding: 8px;
+  background-color: rgba(204, 102, 102, 0.1);
+  border-left: 3px solid var(--accent-red);
+  border-radius: 2px;
+}
+
+.settings-note small {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.memory-info {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+/* Game Info */
+.game-info {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.info-label {
+  color: var(--text-secondary);
+}
+
+.info-value {
+  color: var(--text-bright);
+  font-weight: bold;
+}
+
+/* Rules Panel */
+.rules {
+  padding: 15px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.rules h3 {
+  color: var(--text-bright);
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.rules ul {
+  margin-left: 20px;
+}
+
+.rules li {
+  margin-bottom: 5px;
+}
+
+/* Error state */
+.error {
+  text-align: center;
+  padding: 40px;
+}
+
+.error h2 {
+  color: var(--accent-red);
+  margin-bottom: 15px;
+}
+
+.error p {
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-lighter);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  #app {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .game-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .eval-bar {
+    width: 100%;
+    height: 20px;
+    order: -1;
+  }
+
+  .eval-white {
+    height: 100%;
+    width: 50%;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  #board {
+    width: min(90vw, 480px);
+    height: min(90vw, 480px);
+  }
+
+  .side-panel {
+    width: min(90vw, 480px);
+  }
+}

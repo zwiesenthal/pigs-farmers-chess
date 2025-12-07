@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pigs and Farmers - Chess Variant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Loading game engine...</p>
+  </div>
+
+  <div id="app">
+    <div class="game-container">
+      <!-- Evaluation Bar -->
+      <div class="eval-bar" id="eval-bar">
+        <div class="eval-white"></div>
+        <div class="eval-score-display">0.0</div>
+      </div>
+
+      <!-- Board Section -->
+      <div class="board-container">
+        <div id="board"></div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button id="btn-first" title="Go to start">|&lt;</button>
+          <button id="btn-undo" title="Undo (Left Arrow)">&lt;</button>
+          <button id="btn-redo" title="Redo (Right Arrow)">&gt;</button>
+          <button id="btn-last" title="Go to end">&gt;|</button>
+          <button id="btn-flip" title="Flip board (F)">Flip</button>
+          <button id="btn-reset">New Game</button>
+          <button id="btn-analyze">Analyze</button>
+          <button id="btn-play-computer">Play vs Computer</button>
+        </div>
+      </div>
+
+      <!-- Side Panel -->
+      <div class="side-panel">
+        <!-- Status -->
+        <div class="panel-section">
+          <div id="status">Pigs (White) to move</div>
+        </div>
+
+        <!-- Analysis -->
+        <div class="panel-section">
+          <div class="panel-header">Engine Analysis</div>
+          <div id="analysis-panel">
+            <p style="color: var(--text-secondary); font-size: 12px;">Click "Analyze" to start engine analysis</p>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="panel-section">
+          <div class="panel-header">Analysis Settings</div>
+          <div class="settings">
+            <div class="setting-row">
+              <label for="depth-input">Max Depth</label>
+              <input type="number" id="depth-input" value="30" min="1" step="1">
+            </div>
+            <div class="setting-row">
+              <label for="time-input">Time (seconds)</label>
+              <input type="number" id="time-input" value="60" min="1" step="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Move List -->
+        <div class="panel-section">
+          <div class="panel-header">Moves</div>
+          <div id="move-list"></div>
+        </div>
+
+        <!-- Rules -->
+        <div class="panel-section">
+          <div class="panel-header">Rules</div>
+          <div class="rules">
+            <h3>Pigs and Farmers</h3>
+            <ul>
+              <li><strong>Pigs (White):</strong> 8 Pawns on rank 2. Move like chess pawns.</li>
+              <li><strong>Farmer (Black):</strong> 1 Queen on d8. Moves like a chess queen.</li>
+              <li><strong>White wins:</strong> If any pawn promotes (reaches rank 8) OR captures the queen.</li>
+              <li><strong>Black wins:</strong> If all pawns are captured.</li>
+              <li><strong>Draw:</strong> Stalemate (no legal moves).</li>
+            </ul>
+            <p style="margin-top: 10px;">This game is theoretically solved - the queen can force a win with perfect play!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load WASM module first -->
+  <script src="/pigs_and_farmers.js"></script>
+  <!-- Then load main app -->
+  <script type="module" src="/src/ts/main.ts"></script>
+</body>
+</html>

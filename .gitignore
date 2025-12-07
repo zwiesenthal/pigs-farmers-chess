@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.wasm
+public/pigs_and_farmers.js
+.DS_Store
+*.log
+.vite/
