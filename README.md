@@ -10,7 +10,6 @@ A web-based chess variant game featuring **8 Pawns (Pigs)** vs **1 Queen (Farmer
 ### Win Conditions
 - **White wins**: Any pawn reaches rank 8 (promotion) OR the queen is captured
 - **Black wins**: All pawns are captured
-- **Draw**: Stalemate (no legal moves available)
 
 **Note**: This game is theoretically solved - with perfect play, White can force a win!
 
@@ -30,7 +29,7 @@ A web-based chess variant game featuring **8 Pawns (Pigs)** vs **1 Queen (Farmer
 - MultiPV: Returns top 3 best moves with full analysis
 - Can reach depths of 20+ plies in seconds
 
-### UI (Lichess-style)
+### UI
 - Dark mode theme
 - SVG chess pieces with drag-and-drop
 - Move highlighting (last move, legal moves)
@@ -41,6 +40,9 @@ A web-based chess variant game featuring **8 Pawns (Pigs)** vs **1 Queen (Farmer
 - Undo/Redo/Flip board controls
 - Play vs Computer mode
 - Keyboard shortcuts (Arrow keys, F to flip)
+
+<img width="929" height="798" alt="image" src="https://github.com/user-attachments/assets/27c73372-3990-4578-bd10-3aa4240767e3" />
+
 
 ## Getting Started
 
